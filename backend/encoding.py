@@ -126,8 +126,10 @@ class SentenceVectorizer(object):
 
         def encode(self, sentences):
                 if self.trained:
-                        assert type(sentences)==list or type(sentences)==np.ndarray, "Please supply an *array* of string sentences."
-                        sents = []
+                        assert type(sentences)==list or type(sentences)==np.ndarray or type(sentences)==str, "Please supply an *array* of string sentences or a string of sentences."
+                        if type(sentences) == str:
+                                sentences = [sentences]
+                        sents = []    
                         for item in sentences:
                                 assert type(item)==str, "Please supply an array of *string* sentences."
                                 for sent in sent_tokenize(item):

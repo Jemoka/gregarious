@@ -33,47 +33,19 @@ from nltk import sent_tokenize, word_tokenize
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 
 from backend import encoding
+from backend.embedding import SemanticEmbedEngine
 
-toyDataset = ["chickpeas, eats honeybees."]
-
-
+toyDataset = ["chickpeas, honeybees.", "eat!", "eats some chickpeas."]
 
 encoder = encoding.SentenceVectorizer(pad=True)
 encoder.train(toyDataset)
-data = encoder.encode(["chickpeas, honeybees.", "eat!", "eats some chickpeas."])
+data = encoder.encode("chickpeas! honeybees. Eat! some groups of chickpeas.")
+sents1 = [data[0], data[1]]
+sents2 = [data[2], data[3]]
+outs = [0, 1]
+
+engine = SemanticEmbedEngine.create(60, encoder.sequenceLength)
+engine.fit(sents1, sents2, outs)
+
 
 # Inputs
-sentenceAInput = Input(shape=(None, ))
-sentenceBInput = Input(shape=(None, ))
-
-# Sentence A embedding+processing
-embeddingA = Embedding(encoder.sequenceLength, 64, input_length=encoder.sequenceLength)
-embeddingA_built = embeddingA(sentenceAInput)
-flatteningA = Flatten()
-flatteningA_built = flatteningA(embeddingA_built)
-sentenceAEmbedded = Dense(60)
-sentenceAEmbedded_built = sentenceAEmbedded(flatteningA_built)
-
-# Sentence B embedding+processing
-embeddingB = Embedding(encoder.sequenceLength, 64, input_length=encoder.sequenceLength)
-embeddingB_built = embeddingB(sentenceBInput)
-flatteningB = Flatten()
-flatteningB_built = flatteningB(embeddingB_built)
-sentenceBEmbedded = Dense(60)
-sentenceBEmbedded_built = sentenceBEmbedded(flatteningB_built)
-
-# Combining/Output
-adder = Add()
-added = adder([sentenceAEmbedded_built, sentenceBEmbedded_built])
-score = Dense(1)
-score_built = score(added)
-
-trainer = Model(inputs=[sentenceAInput, sentenceBInput], outputs=score_built)
-trainer.compile('rmsprop', 'mse')
-
-sentenceAEmbedder = Model(inputs=sentenceAInput, outputs=sentenceAEmbedded_built)
-sentenceBEmbedder = Model(inputs=sentenceBInput, outputs=sentenceBEmbedded_built)
-
-# dummyOutput = [list(range(10)), list(range(10)), list(range(10))]
-
-trainer.fit(x=[[data[0]], [data[1]]], y=[[0]])
