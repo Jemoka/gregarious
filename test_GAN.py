@@ -27,7 +27,7 @@ import numpy as np
 import keras
 from keras.utils import to_categorical
 from keras.models import Model
-from keras.layers import Input, Dense, Embedding, Flatten
+from keras.layers import Input, Dense, Embedding, Flatten, Add
 
 from nltk import sent_tokenize, word_tokenize
 from nltk.tokenize.treebank import TreebankWordDetokenizer
@@ -42,17 +42,38 @@ encoder = encoding.SentenceVectorizer(pad=True)
 encoder.train(toyDataset)
 data = encoder.encode(["chickpeas, honeybees.", "eat!", "eats some chickpeas."])
 
-inp = Input(shape=(None, ))
-embedding = Embedding(encoder.sequenceLength, 64, input_length=encoder.sequenceLength)
-embedding_built = embedding(inp)
-flattening = Flatten()
-flattening_built = flattening(embedding_built)
-testDense = Dense(10)
-testDense_built = testDense(flattening_built)
+# Inputs
+sentenceAInput = Input(shape=(None, ))
+sentenceBInput = Input(shape=(None, ))
 
-model = Model(inputs=inp, outputs=testDense_built)
-model.compile('rmsprop', 'mse')
+# Sentence A embedding+processing
+embeddingA = Embedding(encoder.sequenceLength, 64, input_length=encoder.sequenceLength)
+embeddingA_built = embeddingA(sentenceAInput)
+flatteningA = Flatten()
+flatteningA_built = flatteningA(embeddingA_built)
+sentenceAEmbedded = Dense(60)
+sentenceAEmbedded_built = sentenceAEmbedded(flatteningA_built)
 
-dummyOutput = [list(range(10)), list(range(10)), list(range(10))]
+# Sentence B embedding+processing
+embeddingB = Embedding(encoder.sequenceLength, 64, input_length=encoder.sequenceLength)
+embeddingB_built = embeddingB(sentenceBInput)
+flatteningB = Flatten()
+flatteningB_built = flatteningB(embeddingB_built)
+sentenceBEmbedded = Dense(60)
+sentenceBEmbedded_built = sentenceBEmbedded(flatteningB_built)
 
-model.fit(x=[data], y=[dummyOutput])
+# Combining/Output
+adder = Add()
+added = adder([sentenceAEmbedded_built, sentenceBEmbedded_built])
+score = Dense(1)
+score_built = score(added)
+
+trainer = Model(inputs=[sentenceAInput, sentenceBInput], outputs=score_built)
+trainer.compile('rmsprop', 'mse')
+
+sentenceAEmbedder = Model(inputs=sentenceAInput, outputs=sentenceAEmbedded_built)
+sentenceBEmbedder = Model(inputs=sentenceBInput, outputs=sentenceBEmbedded_built)
+
+# dummyOutput = [list(range(10)), list(range(10)), list(range(10))]
+
+trainer.fit(x=[[data[0]], [data[1]]], y=[[0]])
