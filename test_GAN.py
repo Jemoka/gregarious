@@ -24,56 +24,81 @@ limitations under the License.
 import tensorflow as tf
 import numpy as np
 
-import keras
-from keras.utils import to_categorical
-from keras.models import Model
-from keras.layers import Input, Dense, Embedding, Flatten, Add
+# import keras
+# from keras.utils import to_categorical
+# from keras.models import Model
+# from keras.layers import Input, Dense, Embedding, Flatten, Add
 
-from nltk import sent_tokenize, word_tokenize
-from nltk.tokenize.treebank import TreebankWordDetokenizer
+# from nltk import sent_tokenize, word_tokenize
+# from nltk.tokenize.treebank import TreebankWordDetokenizer
+from nltk.corpus import gutenberg as gt
 
-from backend import encoding
+from backend import encoding, CompareEngine
+from backend.embedding import SemanticEmbedEngine
+from backend.io import CorpusManager
 
-toyDataset = ["chickpeas, eats honeybees."]
+import random
+
+# # from tqdm import tqdm56
+
+# enc = encoding.SentenceOneHotEncoder()
+# enc.train(["This is a dummy dataset. A dummy dataset is dumb. Dumb and dummer. Quicks!"])
+
+# input_a_fake = enc.encode(["This is a long, dummy sentence. This is another. long."])
+# input_b_fake = enc.encode(["dummy is a. SENTENCE long. Quicks!"])
+# outputs_fake = [0.1, 0.8, 1]
+
+# print(input_a_fake)
+
+# embedEngine = SemanticEmbedEngine_V2.create(128, enc.sequenceLength)
+# embedEngine.fit(input_a_fake, input_b_fake, outputs_fake, epochs=10, batch_size=16)
 
 
+# training_data_raw = ""
+# for fileid in gt.fileids():
+#     training_data_raw = training_data_raw+gt.raw(fileid)
 
-encoder = encoding.SentenceVectorizer(pad=True)
-encoder.train(toyDataset)
-data = encoder.encode(["chickpeas, honeybees.", "eat!", "eats some chickpeas."])
+manager = CorpusManager(gt.raw("austen-sense.txt"))
+manager.compile(size=500, save_dir="austen-sense")
+print("Seatbelts please! Loading a database file...")
+# manager = CorpusManager.load("gutenberg/CM_compdata_35c3f.cpmgr")
+# manager = CorpusManager.load("austen-sense-unpad/CM_compdata_e0b77.cpmgr")
+print("Done.")
+# manager = CorpusManager("This is a terrable sentence. \n Whatever! \n The string marks a silly sentence. \n Bleh, chick peas, honey bees. \n Groups of chickpeas. Honeies. Bees.")
+# manager.compile(size=100)
+# manager.encoder.untrain()
+input_a, input_b, outputs = manager.generate(1000, True)
+test_a, test_b, test_out = manager.generate(10, True)
 
+# Training
+embedEngine = SemanticEmbedEngine.create(128, manager.sequenceLength, recurrentSize=32, matrixEmbedSize=32)
+embedEngine.fit(input_a, input_b, outputs, epochs=10, batch_size=16, validation_split=0.01)
+diffs = embedEngine.predict_diff(test_a, test_b)
+
+# manager.compile(size=1000, save_dir="austen-sense")
+# print(manager.generate(100, True))
+# compEngine = CompareEnsgine()
+
+# encoder = encoding.SentenceVectorizer(pad=True)
+# encoder.train(austen)
+# input_a = []
+# input_b = []
+# outputs = []
+
+# for _ in tqdm(range(1000)):
+#     linea = austen[random.randint(0, len(austen))]
+#     lineb = austen[random.randint(0, len(austen))]
+#     while linea.strip() == "":
+#         linea = austen[random.randint(0, len(austen))]
+#     while lineb.strip() == "":
+#         lineb = austen[random.randint(0, len(austen))]
+#     similarity = compEngine.eval(linea, lineb)
+#     la_enc = encoder.encode(linea)
+#     lb_enc = encoder.encode(lineb)
+#     input_a = input_a + [la_enc[0]]
+#     input_b = input_b + [lb_enc[0]]
+#     outputs.append(similarity)
+
+
+print("")
 # Inputs
-sentenceAInput = Input(shape=(None, ))
-sentenceBInput = Input(shape=(None, ))
-
-# Sentence A embedding+processing
-embeddingA = Embedding(encoder.sequenceLength, 64, input_length=encoder.sequenceLength)
-embeddingA_built = embeddingA(sentenceAInput)
-flatteningA = Flatten()
-flatteningA_built = flatteningA(embeddingA_built)
-sentenceAEmbedded = Dense(60)
-sentenceAEmbedded_built = sentenceAEmbedded(flatteningA_built)
-
-# Sentence B embedding+processing
-embeddingB = Embedding(encoder.sequenceLength, 64, input_length=encoder.sequenceLength)
-embeddingB_built = embeddingB(sentenceBInput)
-flatteningB = Flatten()
-flatteningB_built = flatteningB(embeddingB_built)
-sentenceBEmbedded = Dense(60)
-sentenceBEmbedded_built = sentenceBEmbedded(flatteningB_built)
-
-# Combining/Output
-adder = Add()
-added = adder([sentenceAEmbedded_built, sentenceBEmbedded_built])
-score = Dense(1)
-score_built = score(added)
-
-trainer = Model(inputs=[sentenceAInput, sentenceBInput], outputs=score_built)
-trainer.compile('rmsprop', 'mse')
-
-sentenceAEmbedder = Model(inputs=sentenceAInput, outputs=sentenceAEmbedded_built)
-sentenceBEmbedder = Model(inputs=sentenceBInput, outputs=sentenceBEmbedded_built)
-
-# dummyOutput = [list(range(10)), list(range(10)), list(range(10))]
-
-trainer.fit(x=[[data[0]], [data[1]]], y=[[0]])
