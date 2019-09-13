@@ -46,7 +46,7 @@ class SemanticEmbedEngine(object):
         sentenceAInput = Input(shape=(None, ))
         sentenceBInput = Input(shape=(None, ))
 
-        normal = keras.initializers.RandomNormal(mean=0.0, stddev=5e-3, seed=None)
+        normal = keras.initializers.glorot_normal()
 
         # Sentence A embedding+processing
         embeddingA = Embedding(vocabSize, matrixEmbedSize, input_length=vocabSize, mask_zero=True)
@@ -67,11 +67,11 @@ class SemanticEmbedEngine(object):
         # Combining/Output
         adder = Add()
         added = adder([sentenceAEmbedded_built, sentenceBEmbedded_built])
-        score = Dense(1, kernel_initializer=normal)
+        score = Dense(1, kernel_initializer=normal, activation="sigmoid")
         score_built = score(added)
 
         trainer = Model(inputs=[sentenceAInput, sentenceBInput], outputs=score_built)
-        optimizer = Adam(lr=1e-7)
+        optimizer = Adam(lr=1e-3)
         trainer.compile(optimizer, 'mae')
         
         sentenceAEmbedder = Model(inputs=sentenceAInput, outputs=sentenceAEmbedded_built)

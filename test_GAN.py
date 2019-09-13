@@ -24,7 +24,6 @@ limitations under the License.
 import tensorflow as tf
 import numpy as np
 
-<<<<<<< HEAD
 # import keras
 # from keras.utils import to_categorical
 # from keras.models import Model
@@ -59,11 +58,11 @@ import random
 # for fileid in gt.fileids():
 #     training_data_raw = training_data_raw+gt.raw(fileid)
 
-manager = CorpusManager(gt.raw("austen-sense.txt"))
-manager.compile(size=500, save_dir="austen-sense")
+# manager = CorpusManager(gt.raw("austen-sense.txt"))
+# manager.compile(size=500, save_dir="austen-sense")
 print("Seatbelts please! Loading a database file...")
 # manager = CorpusManager.load("gutenberg/CM_compdata_35c3f.cpmgr")
-# manager = CorpusManager.load("austen-sense-unpad/CM_compdata_e0b77.cpmgr")
+manager = CorpusManager.load("austen-sense/CM_compdata_c7c30.cpmgr")
 print("Done.")
 # manager = CorpusManager("This is a terrable sentence. \n Whatever! \n The string marks a silly sentence. \n Bleh, chick peas, honey bees. \n Groups of chickpeas. Honeies. Bees.")
 # manager.compile(size=100)
