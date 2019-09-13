@@ -24,6 +24,7 @@ limitations under the License.
 import tensorflow as tf
 import numpy as np
 
+<<<<<<< HEAD
 # import keras
 # from keras.utils import to_categorical
 # from keras.models import Model
@@ -101,4 +102,3 @@ diffs = embedEngine.predict_diff(test_a, test_b)
 
 
 print("")
-# Inputs
