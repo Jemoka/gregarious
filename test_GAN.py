@@ -72,8 +72,9 @@ test_a, test_b, test_out = manager.generate(10, True)
 
 # Training
 embedEngine = SemanticEmbedEngine.create(128, manager.sequenceLength, recurrentSize=32, matrixEmbedSize=32)
-embedEngine.fit(input_a, input_b, outputs, epochs=10, batch_size=16, validation_split=0.01)
+embedEngine.fit(input_a, input_b, outputs, epochs=3, batch_size=16, validation_split=0.01)
 diffs = embedEngine.predict_diff(test_a, test_b)
+
 
 # manager.compile(size=1000, save_dir="austen-sense")
 # print(manager.generate(100, True))
