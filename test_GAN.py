@@ -33,8 +33,10 @@ import numpy as np
 # from nltk.tokenize.treebank import TreebankWordDetokenizer
 from nltk.corpus import gutenberg as gt
 
-from backend import encoding, CompareEngine
-from backend.embedding import SemanticEmbedEngine
+from backend import encoding
+from backend.utils import CompareEngine
+from backend.encoding import SentenceVectorizer
+from backend.embedding.engines import SemanticEmbedEngine
 from backend.io import CorpusManager
 
 import random
@@ -58,22 +60,29 @@ import random
 # for fileid in gt.fileids():
 #     training_data_raw = training_data_raw+gt.raw(fileid)
 
+# encoder = SentenceVectorizer(pad=True, minval=3)
 # manager = CorpusManager(gt.raw("austen-sense.txt"))
-# manager.compile(size=500, save_dir="austen-sense")
+# manager.compile(size=50, save_dir="corpora/austen-sense-toy")
 print("Seatbelts please! Loading a database file...")
-# manager = CorpusManager.load("gutenberg/CM_compdata_35c3f.cpmgr")
-manager = CorpusManager.load("austen-sense/CM_compdata_c7c30.cpmgr")
+# # manager = CorpusManager.load("gutenberg/CM_compdata_35c3f.cpmgr")
+# manager = CorpusManager.load("austen-sense/CM_compdata_d4530.cpmgr")
+manager = CorpusManager.load("corpora/austen-sense-toy/CM_compdata_ab855.cpmgr")
+# manager.compile(20)
+# manager = CorpusManager.load("austen-sense-new/CM_compdata_078dc.cpmgr")
 print("Done.")
 # manager = CorpusManager("This is a terrable sentence. \n Whatever! \n The string marks a silly sentence. \n Bleh, chick peas, honey bees. \n Groups of chickpeas. Honeies. Bees.")
 # manager.compile(size=100)
 # manager.encoder.untrain()
-input_a, input_b, outputs = manager.generate(1000, True)
-test_a, test_b, test_out = manager.generate(10, True)
+input_a, input_b, outputs = manager.generate(10, False)
+test_a, test_b, test_out = manager.generate(10, False)
 
 # Training
 embedEngine = SemanticEmbedEngine.create(128, manager.sequenceLength, recurrentSize=32, matrixEmbedSize=32)
-embedEngine.fit(input_a, input_b, outputs, epochs=3, batch_size=16, validation_split=0.01)
+embedEngine.fit(input_a, input_b, outputs, epochs=10, batch_size=16, validation_split=0.01)
 diffs = embedEngine.predict_diff(test_a, test_b)
+
+# print(diffs)
+# print(test_out)
 
 
 # manager.compile(size=1000, save_dir="austen-sense")

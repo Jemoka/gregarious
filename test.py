@@ -24,70 +24,45 @@ limitations under the License.
 import tensorflow as tf
 import numpy as np
 
-import keras
-from keras.utils import to_categorical
-from keras.models import Model
-from keras.layers import Input, Dense, LSTM
-
-from nltk import sent_tokenize, word_tokenize
-from nltk.tokenize.treebank import TreebankWordDetokenizer
-
 from backend import encoding
 
-toyDataset = ["chickpeas, eats honeybees."]
+enc = encoding.SentenceOneHotEncoder()
+enc.train(["This is an ice cone mechelle fifer that white gold. This is an ice girl say good girl say mastpice. Friday, icy, girl ice city."])
+res = enc.encode("This. is. an ice. cone. mechelle. white gold.")
+print()
 
 
+        # # Sentence A embedding+processing
+        # embeddingA = Embedding(vocabSize, matrixEmbedSize, input_length=vocabSize, mask_zero=True)
+        # embeddingA_built = embeddingA(sentenceAInput)
+        # recurrentA = GRU(recurrentSize)
+        # recurrentA_built = recurrentA(embeddingA_built)
+        # sentenceAEmbedded = Dense(embedSize, kernel_initializer=normal)
+        # sentenceAEmbedded_built = sentenceAEmbedded(recurrentA_built)
 
-encoder = encoding.SentenceOneHotEncoder()
-encoder.train(toyDataset)
-enc = encoder.encode(["chickpeas, honeybees."])
+        # # Sentence B embedding+processing
+        # embeddingB = Embedding(vocabSize, matrixEmbedSize, input_length=vocabSize)
+        # embeddingB_built = embeddingB(sentenceBInput)
+        # recurrentB = GRU(recurrentSize)
+        # recurrentB_built = recurrentB(embeddingB_built)
+        # sentenceBEmbedded = Dense(embedSize, kernel_initializer=normal)
+        # sentenceBEmbedded_built = sentenceBEmbedded(recurrentB_built)
+# Sentence A embedding+processing
+        # flattenA = Flatten()
+        # flattenA_built = flattenA(sentenceAInput)
+        # embeddingA = Embedding(vocabSize, matrixEmbedSize, input_length=vocabSize)
+        # embeddingA_built = embeddingA(flattenA_built)
+        # recurrentA = GRU(recurrentSize)
+        # recurrentA_built = recurrentA(embeddingA_built)
+        # sentenceAEmbedded = Dense(embedSize, kernel_initializer=normal)
+        # sentenceAEmbedded_built = sentenceAEmbedded(recurrentA_built)
 
-enc_data = enc
-
-# inp = Input(shape=(None, encoder.currentID))
-# lstm = LSTM(encoder.currentID, input_shape=(None, encoder.currentID))
-# lstm_built = lstm(inp)
-
-# model = Model(inputs=[inp], outputs=[lstm_built])
-# model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
-# model.fit([enc_data], [enc_data], epochs=10)
-
-
-inp = Input(shape=(3, 6))
-lstm = LSTM(3, batch_input_shape=(None, 3, 6))
-lstm_built = lstm(inp)
-
-model = Model(inputs=[inp], outputs=[lstm_built])
-model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
-step = np.array([1, 2, 3, 4, 5, 6])
-dataItem = np.array([step, step, step])
-batch = np.array([dataItem, dataItem])
-model.fit(batch, batch, epochs=10)
-
-
-# sentences = []
-# for item in toyDataset:
-#     for sent in sent_tokenize(item):
-#         sentences.append(sent)
-# sents_tokenized = []
-# for sentence in sentences:
-#     sents_tokenized.append(word_tokenize(sentence))
-# sent_vectors = []
-# encoding_dict = {}
-# currentID = 0
-# for sent in sents_tokenized:
-#         word_vectors = []
-#         for word in sent:
-#                 id = encoding_dict.get(word.lower())
-#                 if id:
-#                         word_vectors.append(id)
-#                 else:
-#                         encoding_dict[word.lower()] = currentID 
-#                         word_vectors.append(currentID)
-#                         currentID += 1
-#         sent_vectors.append(word_vectors)
-# sents_encoded = []
-# for sent in sent_vectors:
-#         sents_encoded.append(to_categorical(sent, num_classes=currentID+1)) #extra one for something that is not trained for
-# print(sents_encoded)
-
+        # # Sentence B embedding+processing
+        # flattenB = Flatten()
+        # flattenB_built = flattenB(sentenceBInput)
+        # embeddingB = Embedding(vocabSize, matrixEmbedSize, input_length=vocabSize)
+        # embeddingB_built = embeddingB(flattenB_built)
+        # recurrentB = GRU(recurrentSize)
+        # recurrentB_built = recurrentB(embeddingB_built)
+        # sentenceBEmbedded = Dense(embedSize, kernel_initializer=normal)
+        # sentenceBEmbedded_built = sentenceBEmbedded(recurrentB_built)

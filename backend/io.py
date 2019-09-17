@@ -1,3 +1,5 @@
+# pylint: disable=unsubscriptable-object
+
 """
 Bada Bing, Bada Boom
 The thoughts, ideas, and opinions both spoken and internalized
@@ -28,12 +30,15 @@ import tempfile
 import random
 from tqdm import tqdm
 
-from . import encoding, CompareEngine
+from .utils import CompareEngine
+from . import encoding
+
+import numpy as np
 
 class CorpusManager(object):
-    def __init__(self, raw, encoder=encoding.SentenceVectorizer, pad=True):
+    def __init__(self, raw, encoder=encoding.SentenceOneHotEncoder()):
         self.raw = raw
-        self.encoder = encoder(pad=pad)
+        self.encoder = encoder
         self.compEngine = CompareEngine()
         self.id = str(uuid.uuid4()) 
         self.outputs = []
@@ -43,7 +48,7 @@ class CorpusManager(object):
 
     @property
     def sequenceLength(self):
-        return self.encoder.sequenceLength
+        return self.encoder.vocabSize
 
     def __save(self):
         if self.save_dir == "__temp__":
@@ -59,32 +64,35 @@ class CorpusManager(object):
             return pickle.load(datafile)
 
     def generate(self, size=1000, bar=False):
-        if size > len(self.input_a):
-            s = size-len(self.input_a)
-            sz = len(self.input_a)
-            in_a, in_b, out = self.generate(size=s, bar=bar)
-        else:
-            sz = size
-            in_a = []
-            in_b = []
-            out = []
+        # if size > len(self.input_a):
+        #     s = size-len(self.input_a)
+        #     sz = len(self.input_a)
+        #     in_a, in_b, out = self.generate(size=s, bar=bar)
+        # else:
+        #     sz = size
+        #     in_a = []
+        #     in_b = []
+        #     out = []
 
-        if bar:
-            iterator = tqdm(range(sz))
-        else:
-            iterator = range(sz)
-        
-        selected_ins = random.sample(list(enumerate(self.input_a)), sz)
+        in_a = np.empty((size, self.encoder.sentSize, self.encoder.vocabSize))
+        in_b = np.empty((size, self.encoder.sentSize, self.encoder.vocabSize))
+        out = np.empty((size,))
         
         if bar:
-            iterator = tqdm(selected_ins)
+            iterator = tqdm(range(size))
         else:
-            iterator = selected_ins
+            iterator = range(size)
+
+        # selected_ins = random.sample(list(enumerate(self.input_a)), sz)
         
-        for idx, val in iterator:
-            in_a.append(val)
-            in_b.append(self.input_b[idx])
-            out.append(self.outputs[idx])
+        input_a_enum = list(enumerate(self.input_a))
+
+        for s in iterator:
+            selected = random.sample(input_a_enum, 1)[0]
+
+            in_a[s] = selected[1]
+            in_b[s] = self.input_b[selected[0]]
+            out[s] = self.outputs[selected[0]]
 
         return in_a, in_b, out
 
