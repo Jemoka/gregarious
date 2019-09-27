@@ -32,6 +32,7 @@ import numpy as np
 # from nltk import sent_tokenize, word_tokenize
 # from nltk.tokenize.treebank import TreebankWordDetokenizer
 from nltk.corpus import gutenberg as gt
+from nltk.corpus import reuters
 
 from backend import encoding
 from backend.utils import CompareEngine
@@ -60,25 +61,30 @@ import random
 # for fileid in gt.fileids():
 #     training_data_raw = training_data_raw+gt.raw(fileid)
 
-# encoder = SentenceVectorizer(pad=True, minval=3)
+# manager = CorpusManager(reuters.raw())
+# # enc = encoding.SentenceOneHotEncoder()
 # manager = CorpusManager(gt.raw("austen-sense.txt"))
-# manager.compile(size=50, save_dir="corpora/austen-sense-toy")
-print("Seatbelts please! Loading a database file...")
+# manager.compile(dup_factor=0.1, save_dir="corpora/austen-sense-test", workers=50)
+
+# encoder = SentenceVectorizer(pad=True, minval=3)
+# print("Seatbelts please! Loading a database file...")
+manager = CorpusManager.load("corpora/austen-sense-test/CM_compdata_38289.cpmgr")
 # # manager = CorpusManager.load("gutenberg/CM_compdata_35c3f.cpmgr")
 # manager = CorpusManager.load("austen-sense/CM_compdata_d4530.cpmgr")
-manager = CorpusManager.load("corpora/austen-sense-toy/CM_compdata_ab855.cpmgr")
+# manager = CorpusManager.load("corpora/reuters-toy/CM_compdata_4c401.cpmgr")
+# manager.compile(10000, save_dir="corpora/austen-sense-toy")
 # manager.compile(20)
 # manager = CorpusManager.load("austen-sense-new/CM_compdata_078dc.cpmgr")
 print("Done.")
 # manager = CorpusManager("This is a terrable sentence. \n Whatever! \n The string marks a silly sentence. \n Bleh, chick peas, honey bees. \n Groups of chickpeas. Honeies. Bees.")
 # manager.compile(size=100)
 # manager.encoder.untrain()
-input_a, input_b, outputs = manager.generate(10, False)
-test_a, test_b, test_out = manager.generate(10, False)
+input_a, input_b, outputs = manager.dump(False)
+test_a, test_b, test_out = manager.sample(10, False)
 
 # Training
-embedEngine = SemanticEmbedEngine.create(128, manager.sequenceLength, recurrentSize=32, matrixEmbedSize=32)
-embedEngine.fit(input_a, input_b, outputs, epochs=10, batch_size=16, validation_split=0.01)
+embedEngine = SemanticEmbedEngine.create(256, manager.sequenceLength, recurrentSize=128)
+embedEngine.fit(input_a, input_b, outputs, epochs=10, batch_size=64, validation_split=0.01)
 diffs = embedEngine.predict_diff(test_a, test_b)
 
 # print(diffs)

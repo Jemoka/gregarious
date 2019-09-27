@@ -29,11 +29,11 @@ from nltk.tokenize.treebank import TreebankWordDetokenizer
 
 class SentenceOneHotEncoder(object):
         def __init__(self, minval=2):
-                self.encoding_dict = {"__$UNDEF$__": 0}
-                self.encoding_dict_rev = {0: "__$UNDEF$__"}
+                self.encoding_dict = {"__$UNDEF$__": 1}
+                self.encoding_dict_rev = {1: "__$UNDEF$__"}
                 self.occurence = {}
                 self.trained = False
-                self.__currentID = 1
+                self.__currentID = 2
                 self.__minval = minval
                 self.__maxWords = 0
 
@@ -102,11 +102,17 @@ class SentenceOneHotEncoder(object):
                         words = word_tokenize(sent)
                         word_vectors = []
                         for word in words:
-                                id = self.encoding_dict.get(word.lower(), 0)
+                                id = self.encoding_dict.get(word.lower(), 1)
                                 word_vectors.append(id)
                         while len(word_vectors) < self.__maxWords:
                                 word_vectors.append(0)
-                        sents_encoded.append(to_categorical(np.array(word_vectors), num_classes=self.__currentID).tolist())
+                        cats = to_categorical(np.array(word_vectors), num_classes=self.__currentID).tolist()
+                        cats_n = [0]*len(cats)
+                        for i, item in enumerate(cats):
+                                if item[0] == 1:
+                                        item = [0]*self.__currentID
+                                cats_n[i] = item
+                        sents_encoded.append(cats_n)
                 
                 return np.asarray(sents_encoded)
         
@@ -122,6 +128,8 @@ class SentenceOneHotEncoder(object):
                         words_decoded = []
                         for w in sent:
                                 word = w.index(1)
+                                if word == 0:
+                                        continue
                                 word_decoded = self.encoding_dict_rev[word]
                                 words_decoded.append(word_decoded)
                         sents_decoded.append(detokenizer.detokenize(words_decoded))
