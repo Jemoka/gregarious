@@ -26,6 +26,7 @@ import numpy as np
 from keras.utils import to_categorical
 from nltk import sent_tokenize, word_tokenize
 from nltk.tokenize.treebank import TreebankWordDetokenizer
+from nltk.stem import WordNetLemmatizer
 
 class SentenceOneHotEncoder(object):
         def __init__(self, minval=2):
@@ -36,6 +37,7 @@ class SentenceOneHotEncoder(object):
                 self.__currentID = 2
                 self.__minval = minval
                 self.__maxWords = 0
+                self.__lemma = WordNetLemmatizer()
 
         @property
         def vocabSize(self):
@@ -58,16 +60,17 @@ class SentenceOneHotEncoder(object):
                         if len(words) > self.__maxWords:
                                 self.__maxWords = len(words)
                         for word in words:
-                                count = self.occurence.get(word.lower())
+                                preppedWord = self.__lemma.lemmatize(self.__lemma.lemmatize(word.lower(), "v"), "n")
+                                count = self.occurence.get(preppedWord)
                                 if not count:
-                                        self.occurence[word.lower()] = 1
+                                        self.occurence[preppedWord] = 1
                                 else:
-                                        self.occurence[word.lower()] = count+1
+                                        self.occurence[preppedWord] = count+1
                                         if count+1>=self.__minval:
-                                                id = self.encoding_dict.get(word.lower())
+                                                id = self.encoding_dict.get(preppedWord)
                                                 if not id:
-                                                        self.encoding_dict[word.lower()] = self.__currentID 
-                                                        self.encoding_dict_rev[self.__currentID] = word.lower()
+                                                        self.encoding_dict[preppedWord] = self.__currentID 
+                                                        self.encoding_dict_rev[self.__currentID] = preppedWord
                                                         self.__currentID += 1
                 self.trained = True
 
@@ -102,7 +105,7 @@ class SentenceOneHotEncoder(object):
                         words = word_tokenize(sent)
                         word_vectors = []
                         for word in words:
-                                id = self.encoding_dict.get(word.lower(), 1)
+                                id = self.encoding_dict.get(self.__lemma.lemmatize(self.__lemma.lemmatize(word.lower(), "v"), "n"), 1)
                                 word_vectors.append(id)
                         while len(word_vectors) < self.__maxWords:
                                 word_vectors.append(0)
@@ -136,90 +139,6 @@ class SentenceOneHotEncoder(object):
                 return sents_decoded
 
 
-# class SentenceOneHotEncoder(object):
-#         def __init__(self):
-#                 self.encoding_dict = {"__$UND$__": 1}
-#                 self.encoding_dict_rev = {1: "__$UND$__"}
-#                 self.__currentID = 2
-#                 self.trained = False
-#         @property
-#         def sequenceLength(self):
-#                 return self.__currentID
-
-#         def train(self, sentences):
-#                 if not self.trained:
-#                         assert type(sentences)==list or type(sentences)==np.ndarray, "Please supply an *array* of string sentences."
-#                         sents = []
-#                         for item in sentences:
-#                                 assert type(item)==str, "Please supply an array of *string* sentences."
-#                                 for sent in sent_tokenize(item):
-#                                         sents.append(sent)
-#                         for sent in sents:
-#                                 words = word_tokenize(sent)
-#                                 for word in words:
-#                                         id = self.encoding_dict.get(word.lower())
-#                                         if not id:
-#                                                 self.encoding_dict[word.lower()] = self.__currentID 
-#                                                 self.encoding_dict_rev[self.__currentID] = word.lower()
-#                                                 self.__currentID += 1
-#                         self.trained = True
-#                 else:
-#                         raise Exception("Please call SentenceOneHotEncoder.untrain to reset training.")
-        
-#         def untrain(self):
-#                 print("DANGER AHEAD: you are resetting the training of this vectorizer and ALL DATA WILL BE LOST!")
-#                 print("You have 5 seconds to kill this...")
-#                 time.sleep(5)
-#                 print("Welp. Your training weights is going now.")
-#                 self.encoding_dict = {"__$UNDEF$__": 1}
-#                 self.encoding_dict_rev = {1: "__$UNDEF$__"}
-#                 self.trained = False
-#                 self.__currentID = 2
-#                 print("Done.")
-
-#         def encode(self, sentences):
-#                 if self.trained:
-#                         assert type(sentences)==list or type(sentences)==np.ndarray, "Please supply an *array* of string sentences."
-#                         sents = []
-#                         for item in sentences:
-#                                 assert type(item)==str, "Please supply an array of *string* sentences."
-#                                 for sent in sent_tokenize(item):
-#                                         sents.append(sent)
-#                         sents_encoded = []
-#                         for sent in sents:
-#                                 words = word_tokenize(sent)
-#                                 word_vectors = []
-#                                 for word in words:
-#                                         id = self.encoding_dict.get(word.lower())
-#                                         if id:
-#                                                 word_vectors.append(id)
-#                                         else:
-#                                                 word_vectors.append(1)
-#                                 sents_encoded.append(to_categorical(np.array(word_vectors), num_classes=self.__currentID))
-#                         newarr =  np.array([])
-#                         for sent_encoded in sents_encoded:
-#                                 newarr = np.concatenate(newarr,sent_encoded, axis=2)
-#                         return newarr
-#                 else:
-#                         raise Exception("Model not trained! Please call SentenceOneHotEncoder.train to train.")
-        
-#         def decode(self, sentences):
-#                 assert type(sentences)==list or type(sentences)==np.ndarray, "Please supply an *array* of string sentences."
-#                 detokenizer = TreebankWordDetokenizer()
-#                 sents_decoded = []
-#                 for sent in sentences:
-#                         assert type(sent)==list or type(sent)==np.ndarray, "Please supply an array of array one-hot vector sentences."
-#                         if type(sent) == np.ndarray:
-#                                 sent = sent.tolist()
-#                         words_decoded = []
-#                         for word in sent:
-#                                 indx = word.index(1)
-#                                 if indx == 0:
-#                                         continue
-#                                 word_decoded = self.encoding_dict_rev[indx]
-#                                 words_decoded.append(word_decoded)
-#                         sents_decoded.append(detokenizer.detokenize(words_decoded))
-#                 return sents_decoded
 
 class SentenceVectorizer(object):
         def __init__(self, pad=False, minval=2):

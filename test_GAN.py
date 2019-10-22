@@ -33,6 +33,7 @@ import numpy as np
 # from nltk.tokenize.treebank import TreebankWordDetokenizer
 from nltk.corpus import gutenberg as gt
 from nltk.corpus import reuters
+from nltk.corpus import :
 
 from backend import encoding
 from backend.utils import CompareEngine
@@ -43,7 +44,6 @@ from backend.io import CorpusManager
 import random
 
 # # from tqdm import tqdm56
-
 # enc = encoding.SentenceOneHotEncoder()
 # enc.train(["This is a dummy dataset. A dummy dataset is dumb. Dumb and dummer. Quicks!"])
 
@@ -61,14 +61,21 @@ import random
 # for fileid in gt.fileids():
 #     training_data_raw = training_data_raw+gt.raw(fileid)
 
-# manager = CorpusManager(reuters.raw())
+# raw = reuters.raw()
+# raw_n = ''
+# for i, l in enumerate(raw):
+    # raw_n = raw_n+l
+    # if i>=999999:
+        # break
+# # print(raw_n)    
+# manager = CorpusManager(raw_n)
 # # enc = encoding.SentenceOneHotEncoder()
 # manager = CorpusManager(gt.raw("austen-sense.txt"))
-# manager.compile(dup_factor=0.1, save_dir="corpora/austen-sense-test", workers=50)
+# manager.compile(dup_factor=0.1, save_dir="corpora/reuters-toy", workers=50)
 
 # encoder = SentenceVectorizer(pad=True, minval=3)
 # print("Seatbelts please! Loading a database file...")
-manager = CorpusManager.load("corpora/austen-sense-test/CM_compdata_38289.cpmgr")
+manager = CorpusManager.load("corpora/reuters-toy/CM_compdata_a9df2.cpmgr")
 # # manager = CorpusManager.load("gutenberg/CM_compdata_35c3f.cpmgr")
 # manager = CorpusManager.load("austen-sense/CM_compdata_d4530.cpmgr")
 # manager = CorpusManager.load("corpora/reuters-toy/CM_compdata_4c401.cpmgr")
@@ -83,8 +90,8 @@ input_a, input_b, outputs = manager.dump(False)
 test_a, test_b, test_out = manager.sample(10, False)
 
 # Training
-embedEngine = SemanticEmbedEngine.create(256, manager.sequenceLength, recurrentSize=128)
-embedEngine.fit(input_a, input_b, outputs, epochs=10, batch_size=64, validation_split=0.01)
+embedEngine = SemanticEmbedEngine.create(256, manager.sequenceLength, manager.sentSize, recurrentSize=256)
+embedEngine.fit(input_a, input_b, outputs, epochs=50, batch_size=32, validation_split=0.02)
 diffs = embedEngine.predict_diff(test_a, test_b)
 
 # print(diffs)
@@ -103,7 +110,7 @@ diffs = embedEngine.predict_diff(test_a, test_b)
 
 # for _ in tqdm(range(1000)):
 #     linea = austen[random.randint(0, len(austen))]
-#     lineb = austen[random.randint(0, len(austen))]
+#     lineb = austen[random.randint(0, len(austen))]``
 #     while linea.strip() == "":
 #         linea = austen[random.randint(0, len(austen))]
 #     while lineb.strip() == "":

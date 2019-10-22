@@ -55,6 +55,10 @@ class CorpusManager(object):
     @property
     def sequenceLength(self):
         return self.encoder.vocabSize
+    
+    @property
+    def sentSize(self):
+        return self.encoder.sentSize
 
     def __save(self):
         if self.save_dir == "__temp__":

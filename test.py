@@ -26,43 +26,5 @@ import numpy as np
 
 from backend import encoding
 
-enc = encoding.SentenceOneHotEncoder()
-enc.train(["This is an ice cone mechelle fifer that white gold. This is an ice girl say good girl say mastpice. Friday, icy, girl ice city."])
-res = enc.encode("This. is. an ice. cone. mechelle. white gold.")
-print()
 
 
-        # # Sentence A embedding+processing
-        # embeddingA = Embedding(vocabSize, matrixEmbedSize, input_length=vocabSize, mask_zero=True)
-        # embeddingA_built = embeddingA(sentenceAInput)
-        # recurrentA = GRU(recurrentSize)
-        # recurrentA_built = recurrentA(embeddingA_built)
-        # sentenceAEmbedded = Dense(embedSize, kernel_initializer=normal)
-        # sentenceAEmbedded_built = sentenceAEmbedded(recurrentA_built)
-
-        # # Sentence B embedding+processing
-        # embeddingB = Embedding(vocabSize, matrixEmbedSize, input_length=vocabSize)
-        # embeddingB_built = embeddingB(sentenceBInput)
-        # recurrentB = GRU(recurrentSize)
-        # recurrentB_built = recurrentB(embeddingB_built)
-        # sentenceBEmbedded = Dense(embedSize, kernel_initializer=normal)
-        # sentenceBEmbedded_built = sentenceBEmbedded(recurrentB_built)
-# Sentence A embedding+processing
-        # flattenA = Flatten()
-        # flattenA_built = flattenA(sentenceAInput)
-        # embeddingA = Embedding(vocabSize, matrixEmbedSize, input_length=vocabSize)
-        # embeddingA_built = embeddingA(flattenA_built)
-        # recurrentA = GRU(recurrentSize)
-        # recurrentA_built = recurrentA(embeddingA_built)
-        # sentenceAEmbedded = Dense(embedSize, kernel_initializer=normal)
-        # sentenceAEmbedded_built = sentenceAEmbedded(recurrentA_built)
-
-        # # Sentence B embedding+processing
-        # flattenB = Flatten()
-        # flattenB_built = flattenB(sentenceBInput)
-        # embeddingB = Embedding(vocabSize, matrixEmbedSize, input_length=vocabSize)
-        # embeddingB_built = embeddingB(flattenB_built)
-        # recurrentB = GRU(recurrentSize)
-        # recurrentB_built = recurrentB(embeddingB_built)
-        # sentenceBEmbedded = Dense(embedSize, kernel_initializer=normal)
-        # sentenceBEmbedded_built = sentenceBEmbedded(recurrentB_built)

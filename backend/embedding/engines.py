@@ -25,8 +25,8 @@ import numpy as np
 import keras
 from keras.utils import to_categorical
 from keras.models import Model
-from keras.layers import Input, Dense, Embedding, Flatten, Add, LSTM, Masking
-from keras.optimizers import RMSprop, Adam
+from keras.layers import Input, Dense, Embedding, Flatten, Add, LSTM, Masking, Concatenate, Conv1D, MaxPooling1D
+from keras.optimizers import RMSprop, Adam, SGD, Adagrad
 
 from keras import backend as K
 
@@ -37,42 +37,61 @@ class SemanticEmbedEngine(object):
         self.embedder_b = None
 
     @classmethod
-    def create(cls, embedSize, vocabSize, recurrentSize=None):
+    def create(cls, embedSize, vocabSize, paddedSentSize, recurrentSize=None):
         if not recurrentSize:
             recurrentSize = embedSize
     
-        sentenceAInput = Input(shape=(None, vocabSize))
-        maskA = Masking(mask_value=0.0)(sentenceAInput)
-        sentenceBInput = Input(shape=(None, vocabSize))
-        maskB = Masking(mask_value=0.0)(sentenceBInput)
+        sentenceAInput = Input(shape=(paddedSentSize, vocabSize))
+        # maskA = Masking(mask_value=0.0)(sentenceAInput)
+        sentenceBInput = Input(shape=(paddedSentSize, vocabSize))
+        # maskB = Masking(mask_value=0.0)(sentenceBInput)
 
         normal = keras.initializers.glorot_normal()
-        
-        recurrentA_a = LSTM(recurrentSize, return_sequences=True)
-        recurrentA_a_built = recurrentA_a(maskA)
-        recurrentA_b = LSTM(recurrentSize)
-        recurrentA_b_built = recurrentA_b(recurrentA_a_built)
-        sentenceAEmbedded = Dense(embedSize, kernel_initializer=normal)
-        sentenceAEmbedded_built = sentenceAEmbedded(recurrentA_b_built)
 
-        recurrentB_a = LSTM(recurrentSize, return_sequences=True)
-        recurrentB_a_built = recurrentB_a(maskB)
-        recurrentB_b = LSTM(recurrentSize)
-        recurrentB_b_built = recurrentB_b(recurrentB_a_built)
-        sentenceBEmbedded = Dense(embedSize, kernel_initializer=normal)
-        sentenceBEmbedded_built = sentenceBEmbedded(recurrentB_b_built)
+        conv_A_a = Conv1D(recurrentSize, 5)
+        conv_A_a_built = conv_A_a(sentenceAInput)
+        conv_A_b = Conv1D(recurrentSize, 5)
+        conv_A_b_built = conv_A_b(conv_A_a_built)
+        conv_A_c = Conv1D(recurrentSize, 5)
+        conv_A_c_built = conv_A_c(MaxPooling1D()(conv_A_b_built))
+        # conv_A_flat = Flatten()(conv_A_c_built)
+        dense_A_a = Dense(embedSize, kernel_initializer=normal, activation="relu")
+        dense_A_a_built = dense_A_a(conv_A_c_built)
+        dense_A_b = Dense(embedSize, kernel_initializer=normal, activation="relu")
+        dense_A_b_built = dense_A_b(dense_A_a_built)
+        sentenceAEmbedded = Dense(embedSize, kernel_initializer=normal, activation="relu")
+        sentenceAEmbedded_built = sentenceAEmbedded(dense_A_b_built)
+        
+
+        conv_B_a = Conv1D(recurrentSize, 5)
+        conv_B_a_built = conv_B_a(sentenceBInput)
+        conv_B_b = Conv1D(recurrentSize, 5)
+        conv_B_b_built = conv_B_b(conv_B_a_built)
+        conv_B_c = Conv1D(recurrentSize, 5)
+        conv_B_c_built = conv_B_c(conv_B_b_built)
+        # conv_B_flat = Flatten()(conv_B_c_built)
+        dense_B_a = Dense(embedSize, kernel_initializer=normal, activation="relu")
+        dense_B_a_built = dense_B_a(conv_B_c_built)
+        dense_B_b = Dense(embedSize, kernel_initializer=normal, activation="relu")
+        dense_B_b_built = dense_B_b(dense_B_a_built)
+        sentenceBEmbedded = Dense(embedSize, kernel_initializer=normal, activation="relu")
+        sentenceBEmbedded_built = sentenceBEmbedded(dense_B_b_built)
 
         # Combining/Output
-        adder = Add()
+        adder = Concatenate(axis=1)
         added = adder([sentenceAEmbedded_built, sentenceBEmbedded_built])
-        combineEmbedded = Dense(embedSize, kernel_initializer=normal)
-        combineEmbedded_built = combineEmbedded(added)
-        score = Dense(1, kernel_initializer=normal, activation="sigmoid")
+        recurrentA = LSTM(recurrentSize*2, return_sequences=True)
+        recurrentA_built = recurrentA(added)
+        recurrentB = LSTM(recurrentSize*2)
+        recurrentB_built = recurrentB(recurrentA_built)
+        combineEmbedded = Dense(embedSize, kernel_initializer=normal, activation="relu")
+        combineEmbedded_built = combineEmbedded(recurrentB_built)
+        score = Dense(1, kernel_initializer=normal, activation="relu")
         score_built = score(combineEmbedded_built)
 
         trainer = Model(inputs=[sentenceAInput, sentenceBInput], outputs=score_built)
-        optimizer = Adam(lr=5e-3)
-        trainer.compile(optimizer, 'logcosh')
+        optimizer = Adam(lr=1e-3)
+        trainer.compile(optimizer, 'mae')
         
         sentenceAEmbedder = Model(inputs=sentenceAInput, outputs=sentenceAEmbedded_built)
         sentenceBEmbedder = Model(inputs=sentenceBInput, outputs=sentenceBEmbedded_built)
