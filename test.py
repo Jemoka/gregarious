@@ -1,30 +1,22 @@
-#pylint=disable(maybe-no-member)
+#pylint=disable(maybe-no-member) 
 
-"""
-Bada Bing, Bada Boom
-The thoughts, ideas, and opinions both spoken and internalized
-are the forces, that traverse all platforms, all standards
-and all norms to form their unique class, unique style, and a
-unique kind of ideology that future generations will look up to.
+# from gregarious.data import io
 
-We are #!/Shabang. Copyright 2019/2020 Shabang Systems, LLC.
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# dd = io.DataDescription(header_keys_special={"handle":"screen_name", "isBot":"bot"})
+# df = io.DataFile('corpora/datasets/training_data_2_csv_UTF.csv', dd)
+# # print(df.imported_data)
+# breakpoint()
 
-http://www.apache.org/licenses/LICENSE-2.0
+from gregarious.data.encoding import BytePairEncoder
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+ec = BytePairEncoder()
 
-import tensorflow as tf
-import numpy as np
+tokens = ec._BytePairEncoder__init_charlist_generation(["Rameo ramen reads the review of radical islamism", "Let's break this city, make it all reeeeee ra hall!!"])
+bp_a = ec._BytePairEncoder__make_bytepair(tokens[0])
+bp_b = ec._BytePairEncoder__make_bytepair(tokens[1])
 
-from backend import encoding
-
-
+bpct_a = ec._BytePairEncoder__return_bp_count(bp_a)
+bpct_b = ec._BytePairEncoder__return_bp_count(bp_b)
+print(ec._BytePairEncoder__two_counting_dicts_to_one(bpct_a, bpct_b))
+breakpoint()
 
