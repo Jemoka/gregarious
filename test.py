@@ -11,7 +11,8 @@ from gregarious.data.encoding import BytePairEncoder
 
 ec = BytePairEncoder()
 
-tokens = ec._BytePairEncoder__init_charlist_generation(["Rameo ramen reads the review of radical islamism", "Let's break this city, make it all reeeeee ra hall!!"])
+tokens = ec._BytePairEncoder__init_charlist_generation(["Rameo ramen reads the review of radical rare ra", "Let's break this city, make it all reeeeee ra hall!!"])
+breakpoint()
 bp_a = ec._BytePairEncoder__make_bytepair(tokens[0])
 bp_b = ec._BytePairEncoder__make_bytepair(tokens[1])
 

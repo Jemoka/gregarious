@@ -78,10 +78,17 @@ class BytePairEncoder(object):
         return dict(bp_count)
 
     @staticmethod
-    def __combine(tokens: list, bp: tuple) -> list:
+    def combine(tokens: list, bp: tuple) -> list:
         tk_gen = []
-        for i in range(len(tolkens)-1):
-            
+        i = 0
+        while i < len(tokens):
+            if (tokens[i], tokens[i+1]) == bp:
+                tk_gen.append(tokens[i]+tokens[i+1])
+                i+=2
+            else:
+                tk_gen.append(tokens[i])
+                i+=1
+        return tk_gen
 #     @staticmethod
     # def __return_max_bp(bp_dict: dict) -> tuple:
         # return max(bp_dict, key=bp_dict.get)
