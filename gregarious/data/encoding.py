@@ -1,3 +1,4 @@
+import tqdm
 import collections
 
 class BytePairEncoder(object):
@@ -5,15 +6,8 @@ class BytePairEncoder(object):
     Does bytepair encoding
     """
 
-    @staticmethod
-    def __bytepairify(tlist: list) -> list:
-        """__bytepairify
-        Makes bytepairs out of a list of tokens
-        :param tlist: token list
-        :type tlist: list
-        :rtype: list
-        """
-        return 
+    def __init__(self):
+        self.int_tokens = {}
 
     @staticmethod
     def __init_charlist_generation(sents:list) -> list:
@@ -25,7 +19,7 @@ class BytePairEncoder(object):
         """
         product_array = []
         for sent in sents:
-            sent = sent+"\0"
+            sent = str(sent)+"\0"
             product_array.append(sent)
         oup = []
         for sent in product_array:
@@ -78,18 +72,51 @@ class BytePairEncoder(object):
         return dict(bp_count)
 
     @staticmethod
-    def combine(tokens: list, bp: tuple) -> list:
+    def __combine(tokens: list, bp: tuple) -> list:
         tk_gen = []
         i = 0
-        while i < len(tokens):
-            if (tokens[i], tokens[i+1]) == bp:
+        while i <= len(tokens) - 1:
+            if i == len(tokens) - 1:
+                tk_gen.append(tokens[i])
+                i+=1
+            elif (tokens[i], tokens[i+1]) == bp:
                 tk_gen.append(tokens[i]+tokens[i+1])
                 i+=2
             else:
                 tk_gen.append(tokens[i])
                 i+=1
         return tk_gen
-#     @staticmethod
-    # def __return_max_bp(bp_dict: dict) -> tuple:
-        # return max(bp_dict, key=bp_dict.get)
+    
+    def encode(self, sents:list, factor:int=5, returns_string_tokens:bool=False) -> list:
+        sents_tokenized = self.__init_charlist_generation(sents)
+        print("BPEing...")
+        for _ in tqdm.tqdm(range(factor)):
+            count_dicts = []
+            for tokens in sents_tokenized:
+                count_dicts.append(self.__return_bp_count(self.__make_bytepair(tokens)))
+            cd_master = {} 
+            for d in count_dicts:
+                cd_master = self.__two_counting_dicts_to_one(cd_master, d)
+            try:
+                maxbp = max(cd_master, key=cd_master.get)
+            except ValueError:
+                return sents_tokenized
+            sents_tokenized = [self.__combine(i, maxbp) for i in sents_tokenized]
+        if not returns_string_tokens:
+            key = 0            
+            sents_int = []
+            print("Intergerizing...")
+            for sent in tqdm.tqdm(sents_tokenized):
+                sent_int = []
+                for token in sent:
+                    t_int = self.int_tokens.get(token)
+                    if not t_int:
+                        self.int_tokens[token] = key
+                        t_int = key
+                        key += 1
+                    sent_int.append(t_int) 
+                sents_int.append(sent_int)
+            sents_tokenized = sents_int
+        return sents_tokenized
+
 

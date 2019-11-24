@@ -107,3 +107,10 @@ venv.bak/
 
 # Vim swap files
 *.swp
+
+# Twitter API
+twitter_get.py
+
+# Data Files
+*.csv
+*.zip

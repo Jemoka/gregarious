@@ -1,4 +1,8 @@
+import os
 import csv
+import uuid
+import pickle
+from . import encoding
 
 class DataDescription(object):
     """
@@ -59,7 +63,7 @@ class DataFile(object):
                 res = str(d)
         return res
 
-    def __init__(self, directory:str, description:DataDescription) -> None:
+    def __init__(self, directory:str, description:DataDescription, name:str=str(uuid.uuid4())[-8:], save_dir:str="") -> None:
         """__init__
 
         :param directory: the directory of your lovely CSV
@@ -92,18 +96,54 @@ class DataFile(object):
                 pass
             else:
                 self.importedData[self.dataDescription.header_keys[str(key)]] = list(val)
+        self.directory = os.path.join(save_dir, name+".gregariousdata")
+        self.isCompiled = False
    
-    def __encode_p1(self) -> None:
-        """__encode_p1
-        Turns all chars into charcodes
-        :rtype: None
-        """
-        handles_chars = []
-        for handle self.importedData['handle']:
-            handle_chars = []
-            for char in handle:
-                handles_chars.append(ord(char))
-            handles_chars.append(handle_chars)
+    def compile(self):
+        assert not self.isCompiled, "DataFile compiled already!"
+        self.encoder = encoding.BytePairEncoder()
+        self.importedData["description"] = self.encoder.encode(self.importedData["description"], factor=30) 
+        self.importedData["status"] = self.encoder.encode(self.importedData["status"], factor=50) 
+        self.importedData["handle"] = self.encoder.encode(self.importedData["handle"], factor=20) 
+        self.importedData["name"] = self.encoder.encode(self.importedData["name"], factor=20) 
+        na = []
+        for point in self.importedData["isBot"]:
+            if point == 0:
+                na.append([0, 1])
+            elif point == 1:
+                na.append([1, 0])
+        self.importedData["isBot"] = na
+        self.isCompiled = True
 
-        
+    def save(self):
+        with open(self.directory, "wb") as df:
+            pickle.dump(self, df)
 
+class CorpusManager(object):
+    def __init__(self, datafile):
+        self.df = datafile
+
+    def __pad(self, seqs, char=0):
+        longest = len(max(seqs, key=len))
+        padded = []
+        for i in seqs:
+            new = i 
+            while len(new) < longest:
+                new.append(0)
+            padded.append(new)
+        return padded, longest
+    
+    def compute(self, maximum=None):
+        handles, handles_len = self.__pad(self.df.importedData["handle"][:maximum])
+        names, names_len = self.__pad(self.df.importedData["name"][:maximum])
+        description, desc_len = self.__pad(self.df.importedData["description"][:maximum])
+        status, status_len = self.__pad(self.df.importedData["status"][:maximum])
+        followers = self.df.importedData["followers_count"][:maximum]
+        friends = self.df.importedData["friends_count"][:maximum]
+        friends_and_follwers = []
+        for fl, fr in zip(followers, friends):
+            friends_and_follwers.append([fl, fr])
+        isBot = self.df.importedData["isBot"][:maximum]
+        # return {"meta":{"lengths":[handles_len, names_len, desc_len, status_len, 2]}, "ins":[handles, names, description, status, friends_and_follwers], "out":[isBot]} 
+        return {"meta":{"lengths":[handles_len, names_len, desc_len, status_len, 2]}, "ins":[handles, names, description, status], "out":[isBot]} 
+        # return {"meta":{"lengths":[desc_len, status_len, 2]}, "ins":[description, status], "out":[isBot]} 
