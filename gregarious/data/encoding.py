@@ -90,12 +90,15 @@ class BytePairEncoder(object):
     def encode(self, sents:list, factor:int=5, returns_string_tokens:bool=False) -> list:
         sents_tokenized = self.__init_charlist_generation(sents)
         print("BPEing...")
-        for _ in tqdm.tqdm(range(factor)):
+        for i in range(factor):
+            print("Encoding Round", i+1, "of", factor)
+            print("Tokenizing...")
             count_dicts = []
-            for tokens in sents_tokenized:
+            for tokens in tqdm.tqdm(sents_tokenized):
                 count_dicts.append(self.__return_bp_count(self.__make_bytepair(tokens)))
+            print("Analyzing...")
             cd_master = {} 
-            for d in count_dicts:
+            for d in tqdm.tqdm(count_dicts):
                 cd_master = self.__two_counting_dicts_to_one(cd_master, d)
             try:
                 maxbp = max(cd_master, key=cd_master.get)

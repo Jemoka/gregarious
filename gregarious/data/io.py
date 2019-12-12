@@ -1,7 +1,12 @@
 import os
 import csv
 import uuid
+import tqdm
 import pickle
+import langdetect
+from langdetect import detect
+
+
 from . import encoding
 
 class DataDescription(object):
@@ -99,13 +104,45 @@ class DataFile(object):
         self.directory = os.path.join(save_dir, name+".gregariousdata")
         self.isCompiled = False
    
-    def compile(self):
+    @staticmethod
+    def __lang_check(desc, status, target="en"):
+        try:
+            dd = detect(str(desc)) == target
+            ss = detect(str(status)) == target
+        except langdetect.lang_detect_exception.LangDetectException or TypeError:
+            return False
+        return dd and ss
+
+    def compile(self, target_lang='en'):
         assert not self.isCompiled, "DataFile compiled already!"
         self.encoder = encoding.BytePairEncoder()
+        print("Language conforming...")
+        id_desc_conf = []
+        id_status_conf = []
+        id_handle_conf = []
+        id_name_conf = []
+        id_friends_conf = []
+        id_followers_conf = []
+        id_oup_conf = []
+
+        for desc, status, handle, name, friends, followers, isBot in tqdm.tqdm(zip(self.importedData["description"], self.importedData["status"], self.importedData["handle"], self.importedData["name"], self.importedData["friends_count"], self.importedData["followers_count"], self.importedData["isBot"]), total=len(self.importedData["description"])):
+            if self.__lang_check(desc, status, target_lang):
+                id_desc_conf.append(desc)
+                id_status_conf.append(status)
+                id_handle_conf.append(handle)
+                id_name_conf.append(name)
+                id_friends_conf.append(friends)
+                id_followers_conf.append(followers)
+                id_oup_conf.append(isBot)
+        
+        self.importedData["description"], self.importedData["status"], self.importedData["handle"], self.importedData["name"], self.importedData["friends_count"], self.importedData["followers_count"], self.importedData["isBot"] = id_desc_conf, id_status_conf, id_handle_conf, id_name_conf, id_friends_conf, id_followers_conf, id_oup_conf
+
+        print("Encoding...")
         self.importedData["description"] = self.encoder.encode(self.importedData["description"], factor=30) 
         self.importedData["status"] = self.encoder.encode(self.importedData["status"], factor=50) 
         self.importedData["handle"] = self.encoder.encode(self.importedData["handle"], factor=20) 
         self.importedData["name"] = self.encoder.encode(self.importedData["name"], factor=20) 
+        print("Columizing...")
         na = []
         for point in self.importedData["isBot"]:
             if point == 0:
@@ -114,10 +151,16 @@ class DataFile(object):
                 na.append([1, 0])
         self.importedData["isBot"] = na
         self.isCompiled = True
+        print("Done!")
 
     def save(self):
         with open(self.directory, "wb") as df:
             pickle.dump(self, df)
+
+    def recompile(self, target_lang='en'):
+        input("I don't think you should be calling this. Would you like to continue?")
+        self.isCompiled = False
+        self.compile(target_lang)
 
 class CorpusManager(object):
     def __init__(self, datafile):

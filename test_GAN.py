@@ -13,7 +13,7 @@ import numpy as np
 # from nltk.tokenize.treebank import TreebankWordDetokenizer
 from nltk.corpus import gutenberg as gt
 from nltk.corpus import reuters
-from nltk.corpus import :
+from nltk.corpus import .
 
 from backend import encoding
 from backend.utils import CompareEngine

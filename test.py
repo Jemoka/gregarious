@@ -1,4 +1,4 @@
-#pylint=disable(maybe-no-member) 
+# pylint=disable(maybe-no-member)
 
 import pickle
 import keras
@@ -7,22 +7,53 @@ from gregarious.network import Gregarious
 
 from keras.optimizers import Adam
 
-dd = io.DataDescription()
-# df = io.DataFile('corpora/datasets/training_data_2_csv_UTF.csv', dd)
+# dd = io.DataDescription()
+# df = io.DataFile('corpora/datasets/cresci-rtbust-2019.csv', dd, name="rtbust-1000")
 # df.compile()
 
 # df.save()
-# # print(df.imported_data)
+# # # print(df.imported_data)
 
 # breakpoint()
 
-with open("2fa59588.gregariousdata", "rb") as data:
+with open("rtbust-1000.gregariousdata", "rb") as data:
     df = pickle.load(data)
 
+# isbots = df.importedData["isBot"]
+# humans = 0
+# bots = 0
+# for i in isbots:
+    # if i == [0, 1]
+        # bots+=1
+    # elif i == [1, 0]:
+        # humans+=1
+
+# breakpoint()
 # net = Gregarious(df, optimizer=Adam(lr=1e-4))
-net = Gregarious(df, "trained_networks/Test_Run-3.h5")
-net.recompile("adam", "binary_crossentropy", ["mae", "acc"])
-net.train(epochs=150, batch_size=32, validation_split=0.05, callbacks=[keras.callbacks.TensorBoard(log_dir="./training_tb_logs/R4", update_freq="batch")], save="trained_networks/Test_Run-3-1.h5")
+# net = Gregarious(df, optimizer=Adam(lr=3e-4))
+# net = Gregarious(df, optimizer=Adam(lr=1e-3))
+# net = Gregarious(df, optimizer=Adam(lr=2e-3))
+# net = Gregarious(df, optimizer=Adam(lr=1e-3))
+# net.train(epochs=150, batch_size=32, validation_split=0.1, callbacks=[keras.callbacks.TensorBoard(log_dir="./training_tb_logs/CRESTI-test-6", update_freq="batch"), keras.callbacks.EarlyStopping(patience=4, restore_best_weights=True)], save="trained_networks/CRESTI-test-6.h5")
+net = Gregarious(df, seed_model="trained_networks/CRESTI-test-6.h5")
+# net = Gregarious(df, optimizer=Adam(lr=1e-2))
+# net = Gregarious(df, optimizer=Adam(lr=2e-2))
+# net = Gregarious(df, optimizer=Adam(lr=0.1))
+# breakpoint()
+
+cm = io.CorpusManager(df)
+cmDat = cm.compute()
+data = cmDat["ins"]
+res = net.predict(data[0], data[1], data[2], data[3])
+
+
+def checkycheck(i):
+    r = res[i]
+    val = [1, 0] if r[0] > r[1] else [0, 1]
+    print("True:", cmDat["out"][0][i], "Pred:", val)
+
+
+breakpoint()
 
 # from gregarious.data.encoding import BytePairEncoder
 
