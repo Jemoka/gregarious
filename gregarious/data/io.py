@@ -188,5 +188,5 @@ class CorpusManager(object):
             friends_and_follwers.append([fl, fr])
         isBot = self.df.importedData["isBot"][:maximum]
         # return {"meta":{"lengths":[handles_len, names_len, desc_len, status_len, 2]}, "ins":[handles, names, description, status, friends_and_follwers], "out":[isBot]} 
-        return {"meta":{"lengths":[handles_len, names_len, desc_len, status_len, 2]}, "ins":[handles, names, description, status], "out":[isBot]} 
+        return {"meta": {"lengths": [handles_len, names_len, desc_len, status_len, 2]}, "ins": [handles, names, description, status], "out": [isBot]} 
         # return {"meta":{"lengths":[desc_len, status_len, 2]}, "ins":[description, status], "out":[isBot]} 

@@ -34,8 +34,7 @@ with open("rtbust-1000.gregariousdata", "rb") as data:
 # net = Gregarious(df, optimizer=Adam(lr=1e-3))
 # net = Gregarious(df, optimizer=Adam(lr=2e-3))
 # net = Gregarious(df, optimizer=Adam(lr=1e-3))
-# net.train(epochs=150, batch_size=32, validation_split=0.1, callbacks=[keras.callbacks.TensorBoard(log_dir="./training_tb_logs/CRESTI-test-6", update_freq="batch"), keras.callbacks.EarlyStopping(patience=4, restore_best_weights=True)], save="trained_networks/CRESTI-test-6.h5")
-net = Gregarious(df, seed_model="trained_networks/CRESTI-test-6.h5")
+net = Gregarious(df, seed_model="trained_networks/CRESTI-test-7.h5")
 # net = Gregarious(df, optimizer=Adam(lr=1e-2))
 # net = Gregarious(df, optimizer=Adam(lr=2e-2))
 # net = Gregarious(df, optimizer=Adam(lr=0.1))
@@ -50,10 +49,13 @@ res = net.predict(data[0], data[1], data[2], data[3])
 def checkycheck(i):
     r = res[i]
     val = [1, 0] if r[0] > r[1] else [0, 1]
-    print("True:", cmDat["out"][0][i], "Pred:", val)
-
+    print("True:", cmDat["out"][0][i], "Pred:", val, "Actual", r)
 
 breakpoint()
+
+# net.train(epochs=20, batch_size=128, validation_split=0.01, callbacks=[keras.callbacks.TensorBoard(log_dir="./training_tb_logs/CRESTI-test-7", update_freq="batch"), keras.callbacks.EarlyStopping(patience=4, restore_best_weights=True)], save="trained_networks/CRESTI-test-7.h5")
+
+# breakpoint()
 
 # from gregarious.data.encoding import BytePairEncoder
 

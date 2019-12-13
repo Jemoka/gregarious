@@ -25,7 +25,7 @@ class Gregarious(object):
         return self.model.predict(x=[handles, names, descs, statuses])
 
     def train(self, epochs=10, batch_size=10, validation_split=0.1, callbacks=None, save=None):
-        self.model.fit(x=self.__computed_data["ins"], y=self.__computed_data["out"], epochs=epochs, batch_size=batch_size, validation_split=validation_split, callbacks=callbacks)
+        self.model.fit(x=self.__computed_data["ins"], y=self.__computed_data["out"], epochs=epochs, batch_size=batch_size, shuffle=True, validation_split=validation_split, callbacks=callbacks)
         if save:
             self.model.save(save)
 
