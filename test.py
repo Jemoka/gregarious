@@ -58,7 +58,6 @@ net = Gregarious(df, optimizer=Adam(lr=3e-3))
 
 
 net.train(epochs=20, batch_size=2048, validation_split=0.2, callbacks=[keras.callbacks.TensorBoard(log_dir="./training_tb_logs/BB-R1", update_freq="batch"), keras.callbacks.EarlyStopping(monitor="val_acc", patience=4, restore_best_weights=True)], save="trained_networks/BB-R1.5.h5")
-
 # breakpoint()
 
 # from gregarious.data.encoding import BytePairEncoder
